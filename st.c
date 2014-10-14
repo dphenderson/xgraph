@@ -14,6 +14,8 @@
 #include "st.h"
 #include "xgraph.h"
 
+extern void* Calloc(unsigned s, unsigned sz);
+
 #define max(a,b) ((a) > (b) ? (a) : (b))
 #define nil(type) ((type *) 0)
 #define alloc(type) (type *) Malloc(sizeof(type))

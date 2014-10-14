@@ -37,6 +37,14 @@ static char rcsid[] = "$Id: xgraph.c,v 1.3 1999/12/19 00:52:07 heideman Exp $";
 
 extern void init_X();
 extern void do_error();
+extern int ParseArgs(int argc, char *argv[], int do_it);
+extern void InitSets(int o);
+extern void ReadDefaults();
+extern int ReadData(FILE *stream, char *filename);
+extern void EraseData(LocalWin *wi);
+extern void DrawWindow(LocalWin *win_info);
+extern void msg_box(char *title, char *text);
+extern XContext XrmUniqueQuark();
 
 #ifdef DO_DER
 extern void Bounds();
@@ -47,6 +55,9 @@ static void ReverseIt();
 static void Traverse();
 static int XErrHandler();
 
+void DelWindow(Window win, LocalWin *win_info);
+void PrintWindow(Window win, LocalWin *win_info);
+int HandleZoom(char *progname, XButtonPressedEvent *evt, LocalWin *wi, Cursor cur);
 
 NewDataSet PlotData[MAXSETS],
            DataD1[MAXSETS],
@@ -80,6 +91,7 @@ char *disp_name;
 
 
 
+int
 main(argc, argv)
 int     argc;
 char   *argv[];
@@ -378,8 +390,7 @@ int     flags;			/* Options */
 
     static char *paramstr[] =
     {
-	"Cannot plot negative %s values\n",
-	"when the logarithmic option is selected.\n",
+	"Cannot plot negative %s values\nwhen the logarithmic option is selected.\n",
 	"Number of points in %d and %d don't match for stacking.\n",
 	"Point %d in %d and %d doesn't match for stacking.\n",
 	"Set %d has 0 %s.\n"
@@ -400,11 +411,11 @@ int     flags;			/* Options */
 		maxx = maxx - minx;
 		maxy = maxy - miny;
 		if (maxx == 0.0) {
-		    (void) fprintf(stderr, paramstr[3], i, "width");
+		    (void) fprintf(stderr, paramstr[2], i, "width");
 		    maxx = 1.0;
 		}
 		if (maxy == 0.0) {
-		    (void) fprintf(stderr, paramstr[3], i, "height");
+		    (void) fprintf(stderr, paramstr[2], i, "height");
 		    maxy = 1.0;
 		}
 		switch (flags & (FITX|FITY)) {
@@ -432,12 +443,12 @@ int     flags;			/* Options */
 	    for (spot = PlotData[i].list, pspot = PlotData[i - 1].list;
 		 spot && pspot; spot = spot->next, pspot = pspot->next) {
 		if (spot->numPoints != pspot->numPoints) {
-		    (void) fprintf(stderr, paramstr[2], i - 1, i);
+		    (void) fprintf(stderr, paramstr[1], i - 1, i);
 		    exit(1);
 		}
 		for (j = 0; j < spot->numPoints; j++) {
 		    if (spot->xvec[j] != pspot->xvec[j]) {
-			(void) fprintf(stderr, paramstr[3], j, i - 1, i);
+			(void) fprintf(stderr, paramstr[2], j, i - 1, i);
 			exit(1);
 		    }
 		    spot->yvec[j] += pspot->yvec[j];
@@ -457,7 +468,6 @@ int     flags;			/* Options */
 			spot->yvec[j] = 0.0;
 		    else {
 			(void) fprintf(stderr, paramstr[0], "Y");
-			(void) fprintf(stderr, paramstr[1]);
 			exit(1);
 		    }
 		}
@@ -469,7 +479,6 @@ int     flags;			/* Options */
 			spot->xvec[j] = 0.0;
 		    else {
 			(void) fprintf(stderr, paramstr[0], "X");
-			(void) fprintf(stderr, paramstr[1]);
 			exit(1);
 		    }
 		}
@@ -919,6 +928,7 @@ int     DO;                     /* Derivative Order.  */
 }
 
 
+void
 DelWindow(win, win_info)
 Window  win;			/* Window     */
 LocalWin *win_info;		/* Local Info */
@@ -939,6 +949,7 @@ LocalWin *win_info;		/* Local Info */
     Num_Windows -= 1;
 }
 
+void
 PrintWindow(win, win_info)
 Window  win;			/* Window       */
 LocalWin *win_info;		/* Local Info   */

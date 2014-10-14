@@ -24,6 +24,7 @@ static char rcsid[] = "$Id: draw.c,v 1.1.1.1 1999/12/03 23:15:53 heideman Exp $"
 #include "hard_devices.h"
 #include "params.h"
 
+extern void do_error(char *err_text);
 
 static void DrawTitle();
 static void DrawGridAndAxis();
@@ -862,290 +863,292 @@ LocalWin *wi;
  * for translating coordinates.
  */
 {
-    double  sx1,
-            sy1,
-            sx2,
-            sy2,
-            tx = 0,
-            ty = 0;
-    int     idx,
-            subindex;
-    int     code1,
-            code2,
-            cd,
-            mark_inside;
-    int     X_idx, StoreIDX; /* PW */
-    XSegment *ptr;
-    PointList *thisList,
-              *lastList;
-    int     markFlag,
-            pixelMarks,
-            bigPixel,
-            colorMark;
-    int     noLines = PM_BOOL("NoLines");
-    int     lineWidth = PM_INT("LineWidth");
-    /* PW */
-    int     theDelay;
+	double  sx1,
+			sy1,
+			sx2,
+			sy2,
+			tx = 0,
+			ty = 0;
+	int     idx,
+			subindex;
+	int     code1,
+			code2,
+			cd,
+			mark_inside;
+	int     X_idx, StoreIDX; /* PW */
+	XSegment *ptr;
+	PointList *thisList,
+			  *lastList;
+	int     markFlag,
+			pixelMarks,
+			bigPixel,
+			colorMark;
+	int     noLines = PM_BOOL("NoLines");
+	int     lineWidth = PM_INT("LineWidth");
+	/* PW */
+	int     theDelay;
 
-    /* PW Suggests we Flush and set first */
-    theDelay = PM_INT("DelayValue")*100000;
-    XFlush(disp);
-    if (PM_BOOL("Animate")) sleep(1);
-    set_mark_flags(&markFlag, &pixelMarks, &bigPixel, &colorMark);
-    for (idx = 0; idx < MAXSETS; idx++) {
-        if (wi->DOrder == 0)
-	  thisList = PlotData[idx].list;
-        else if (wi->DOrder == 1)
-	    thisList = DataD1[idx].list;
-        else if (wi->DOrder == 2)
-	    thisList = DataD2[idx].list;
-        else {
-          printf ("Internal Error differentiating - order > 2!\n");
-          exit (1);
-        }
-	while (thisList) {
-	    X_idx = 0;
-	    for (subindex = 0; subindex < thisList->numPoints - 1; subindex++) {
-		/* Put segment in (sx1,sy1) (sx2,sy2) */
-		sx1 = thisList->xvec[subindex];
-		sy1 = thisList->yvec[subindex];
-		sx2 = thisList->xvec[subindex + 1];
-		sy2 = thisList->yvec[subindex + 1];
-		/* Now clip to current window boundary */
-		C_CODE(sx1, sy1, code1);
-		C_CODE(sx2, sy2, code2);
-		mark_inside = (code1 == 0);
-		while (code1 || code2) {
-		    if (code1 & code2)
-			break;
-		    cd = (code1 ? code1 : code2);
-		    if (cd & LEFT_CODE) {	/* Crosses left edge */
-			ty = sy1 + (sy2 - sy1) * (wi->UsrOrgX - sx1) / 
-						 (sx2 - sx1);
-			tx = wi->UsrOrgX;
-		    }
-		    else if (cd & RIGHT_CODE) {	/* Crosses right edge */
-			ty = sy1 + (sy2 - sy1) * (wi->UsrOppX - sx1) / 
-						 (sx2 - sx1);
-			tx = wi->UsrOppX;
-		    }
-		    else if (cd & BOTTOM_CODE) {/* Crosses bottom edge */
-			tx = sx1 + (sx2 - sx1) * (wi->UsrOrgY - sy1) / 
-						 (sy2 - sy1);
-			ty = wi->UsrOrgY;
-		    }
-		    else if (cd & TOP_CODE) {	/* Crosses top edge */
-			tx = sx1 + (sx2 - sx1) * (wi->UsrOppY - sy1) / 
-						 (sy2 - sy1);
-			ty = wi->UsrOppY;
-		    }
-		    if (cd == code1) {
-			sx1 = tx;
-			sy1 = ty;
-			C_CODE(sx1, sy1, code1);
-		    }
-		    else {
-			sx2 = tx;
-			sy2 = ty;
-			C_CODE(sx2, sy2, code2);
-		    }
+	/* PW Suggests we Flush and set first */
+	theDelay = PM_INT("DelayValue")*100000;
+	XFlush(disp);
+	if (PM_BOOL("Animate")) sleep(1);
+	set_mark_flags(&markFlag, &pixelMarks, &bigPixel, &colorMark);
+	for (idx = 0; idx < MAXSETS; idx++) {
+		if (wi->DOrder == 0)
+			thisList = PlotData[idx].list;
+		else if (wi->DOrder == 1)
+			thisList = DataD1[idx].list;
+		else if (wi->DOrder == 2)
+			thisList = DataD2[idx].list;
+		else {
+			printf ("Internal Error differentiating - order > 2!\n");
+			exit (1);
 		}
-		if (!code1 && !code2) {
-		    /* Add segment to list */
-		    Xsegs[0][X_idx].x1 = Xsegs[1][X_idx].x1;
-		    Xsegs[0][X_idx].y1 = Xsegs[1][X_idx].y1;
-		    Xsegs[0][X_idx].x2 = Xsegs[1][X_idx].x2;
-		    Xsegs[0][X_idx].y2 = Xsegs[1][X_idx].y2;
-		    Xsegs[1][X_idx].x1 = SCREENX(wi, sx1);
-		    Xsegs[1][X_idx].y1 = SCREENY(wi, sy1);
-		    Xsegs[1][X_idx].x2 = SCREENX(wi, sx2);
-		    Xsegs[1][X_idx].y2 = SCREENY(wi, sy2);
-		    X_idx++;
-		}
+		while (thisList) {
+			X_idx = 0;
+			for (subindex = 0; subindex < thisList->numPoints - 1; subindex++) {
+				/* Put segment in (sx1,sy1) (sx2,sy2) */
+				sx1 = thisList->xvec[subindex];
+				sy1 = thisList->yvec[subindex];
+				sx2 = thisList->xvec[subindex + 1];
+				sy2 = thisList->yvec[subindex + 1];
+				/* Now clip to current window boundary */
+				C_CODE(sx1, sy1, code1);
+				C_CODE(sx2, sy2, code2);
+				mark_inside = (code1 == 0);
+				while (code1 || code2) {
+					if (code1 & code2)
+						break;
+					cd = (code1 ? code1 : code2);
+					if (cd & LEFT_CODE) {	/* Crosses left edge */
+						ty = sy1 + (sy2 - sy1) * (wi->UsrOrgX - sx1) / 
+							(sx2 - sx1);
+						tx = wi->UsrOrgX;
+					}
+					else if (cd & RIGHT_CODE) {	/* Crosses right edge */
+						ty = sy1 + (sy2 - sy1) * (wi->UsrOppX - sx1) / 
+							(sx2 - sx1);
+						tx = wi->UsrOppX;
+					}
+					else if (cd & BOTTOM_CODE) {/* Crosses bottom edge */
+						tx = sx1 + (sx2 - sx1) * (wi->UsrOrgY - sy1) / 
+							(sy2 - sy1);
+						ty = wi->UsrOrgY;
+					}
+					else if (cd & TOP_CODE) {	/* Crosses top edge */
+						tx = sx1 + (sx2 - sx1) * (wi->UsrOppY - sy1) / 
+							(sy2 - sy1);
+						ty = wi->UsrOppY;
+					}
+					if (cd == code1) {
+						sx1 = tx;
+						sy1 = ty;
+						C_CODE(sx1, sy1, code1);
+					}
+					else {
+						sx2 = tx;
+						sy2 = ty;
+						C_CODE(sx2, sy2, code2);
+					}
+				}
+				if (!code1 && !code2) {
+					/* Add segment to list */
+					Xsegs[0][X_idx].x1 = Xsegs[1][X_idx].x1;
+					Xsegs[0][X_idx].y1 = Xsegs[1][X_idx].y1;
+					Xsegs[0][X_idx].x2 = Xsegs[1][X_idx].x2;
+					Xsegs[0][X_idx].y2 = Xsegs[1][X_idx].y2;
+					Xsegs[1][X_idx].x1 = SCREENX(wi, sx1);
+					Xsegs[1][X_idx].y1 = SCREENY(wi, sy1);
+					Xsegs[1][X_idx].x2 = SCREENX(wi, sx2);
+					Xsegs[1][X_idx].y2 = SCREENY(wi, sy2);
+					X_idx++;
+				}
 
-		/* Draw markers if requested and they are in drawing region */
-		if (markFlag && mark_inside) {
-		    if (pixelMarks) {
-			if (bigPixel) {
-			    wi->dev_info.xg_dot(wi->dev_info.user_state,
-						Xsegs[1][X_idx - 1].x1,
-						Xsegs[1][X_idx - 1].y1,
-						P_DOT, 0, idx % MAXATTR);
+				/* Draw markers if requested and they are in drawing region */
+				if (markFlag && mark_inside) {
+					if (pixelMarks) {
+						if (bigPixel) {
+							wi->dev_info.xg_dot(wi->dev_info.user_state,
+									Xsegs[1][X_idx - 1].x1,
+									Xsegs[1][X_idx - 1].y1,
+									P_DOT, 0, idx % MAXATTR);
+						}
+						else {
+							wi->dev_info.xg_dot(wi->dev_info.user_state,
+									Xsegs[1][X_idx - 1].x1,
+									Xsegs[1][X_idx - 1].y1,
+									P_PIXEL, 0, PIXVALUE(idx));
+						}
+					}
+					else {
+						/* Distinctive markers */
+						wi->dev_info.xg_dot(wi->dev_info.user_state,
+								Xsegs[1][X_idx - 1].x1,
+								Xsegs[1][X_idx - 1].y1,
+								P_MARK, MARKSTYLE(idx),
+								PIXVALUE(idx));
+					}
+				}
+
+				/* Draw bar elements if requested */
+				if (PM_BOOL("BarGraph")) {
+					int     barPixels,
+							baseSpot;
+					XSegment line;
+
+					barPixels = (int) ((PM_DBL("BarWidth") /
+								wi->XUnitsPerPixel) + 0.5);
+					if (barPixels <= 0)
+						barPixels = 1;
+					baseSpot = SCREENY(wi, PM_DBL("BarBase"));
+					line.x1 = line.x2 = Xsegs[1][X_idx - 1].x1 + 
+						(int) ((PM_DBL("BarOffset") * idx /
+									wi->XUnitsPerPixel) + 0.5);
+					if (PM_BOOL("StackGraph") && idx != 0)
+						line.y1 = Xsegs[0][X_idx - 1].y1;
+					else
+						line.y1 = baseSpot;
+					line.y2 = Xsegs[1][X_idx - 1].y1;
+					wi->dev_info.xg_seg(wi->dev_info.user_state,
+							1, &line, barPixels, L_VAR,
+							LINESTYLE(idx), PIXVALUE(idx));
+				}
 			}
-			else {
-			    wi->dev_info.xg_dot(wi->dev_info.user_state,
-						Xsegs[1][X_idx - 1].x1,
-						Xsegs[1][X_idx - 1].y1,
-						P_PIXEL, 0, PIXVALUE(idx));
+			/* Handle last marker */
+			if (markFlag && (thisList->numPoints > 0)) {
+				C_CODE(thisList->xvec[thisList->numPoints - 1],
+						thisList->yvec[thisList->numPoints - 1],
+						mark_inside);
+				if (mark_inside == 0) {
+					if (pixelMarks) {
+						if (bigPixel) {
+							wi->dev_info.xg_dot(wi->dev_info.user_state,
+									Xsegs[1][X_idx - 1].x2,
+									Xsegs[1][X_idx - 1].y2,
+									P_DOT, 0, idx % MAXATTR);
+						}
+						else {
+							wi->dev_info.xg_dot(wi->dev_info.user_state,
+									Xsegs[1][X_idx - 1].x2,
+									Xsegs[1][X_idx - 1].y2,
+									P_PIXEL, 0, PIXVALUE(idx));
+						}
+					}
+					else {
+						/* Distinctive markers */
+						wi->dev_info.xg_dot(wi->dev_info.user_state,
+								Xsegs[1][X_idx - 1].x2,
+								Xsegs[1][X_idx - 1].y2,
+								P_MARK, MARKSTYLE(idx),
+								PIXVALUE(idx));
+					}
+				}
 			}
-		    }
-		    else {
-			/* Distinctive markers */
-			wi->dev_info.xg_dot(wi->dev_info.user_state,
-					    Xsegs[1][X_idx - 1].x1,
-					    Xsegs[1][X_idx - 1].y1,
-					    P_MARK, MARKSTYLE(idx),
-					    PIXVALUE(idx));
-		    }
-		}
+			/* Handle last bar */
+			if ((thisList->numPoints > 0) && PM_BOOL("BarGraph")) {
+				int     barPixels,
+						baseSpot;
+				XSegment line;
 
-		/* Draw bar elements if requested */
-		if (PM_BOOL("BarGraph")) {
-		    int     barPixels,
-		            baseSpot;
-		    XSegment line;
-
-		    barPixels = (int) ((PM_DBL("BarWidth") /
-					wi->XUnitsPerPixel) + 0.5);
-		    if (barPixels <= 0)
-			barPixels = 1;
-		    baseSpot = SCREENY(wi, PM_DBL("BarBase"));
-		    line.x1 = line.x2 = Xsegs[1][X_idx - 1].x1 + 
+				barPixels = (int) ((PM_DBL("BarWidth") / 
+							wi->XUnitsPerPixel) + 0.5);
+				if (barPixels <= 0)
+					barPixels = 1;
+				baseSpot = SCREENY(wi, PM_DBL("BarBase"));
+				line.x1 = line.x2 = Xsegs[1][X_idx - 1].x2 +
 					(int) ((PM_DBL("BarOffset") * idx /
-					    wi->XUnitsPerPixel) + 0.5);
-		    if (PM_BOOL("StackGraph") && idx != 0)
-			line.y1 = Xsegs[0][X_idx - 1].y1;
-		    else
-			line.y1 = baseSpot;
-		    line.y2 = Xsegs[1][X_idx - 1].y1;
-		    wi->dev_info.xg_seg(wi->dev_info.user_state,
-					1, &line, barPixels, L_VAR,
-					LINESTYLE(idx), PIXVALUE(idx));
-		}
-	    }
-	    /* Handle last marker */
-	    if (markFlag && (thisList->numPoints > 0)) {
-		C_CODE(thisList->xvec[thisList->numPoints - 1],
-		       thisList->yvec[thisList->numPoints - 1],
-		       mark_inside);
-		if (mark_inside == 0) {
-		    if (pixelMarks) {
-			if (bigPixel) {
-			    wi->dev_info.xg_dot(wi->dev_info.user_state,
-						Xsegs[1][X_idx - 1].x2,
-						Xsegs[1][X_idx - 1].y2,
-						P_DOT, 0, idx % MAXATTR);
+								wi->XUnitsPerPixel) + 0.5);
+				if (PM_BOOL("StackGraph") && idx != 0)
+					line.y1 = Xsegs[0][X_idx - 1].y2;
+				else
+					line.y1 = baseSpot;
+				line.y2 = Xsegs[1][X_idx - 1].y2;
+				wi->dev_info.xg_seg(wi->dev_info.user_state,
+						1, &line, barPixels, L_VAR,
+						LINESTYLE(idx), PIXVALUE(idx));
 			}
-			else {
-			    wi->dev_info.xg_dot(wi->dev_info.user_state,
-						Xsegs[1][X_idx - 1].x2,
-						Xsegs[1][X_idx - 1].y2,
-						P_PIXEL, 0, PIXVALUE(idx));
+
+			/* Draw segments */
+			if (!PM_BOOL("Animate")) {
+				if (thisList->numPoints > 0 && (!noLines) && (X_idx > 0)) {
+					ptr = Xsegs[1];
+					while (X_idx > wi->dev_info.max_segs) {
+						wi->dev_info.xg_seg(wi->dev_info.user_state,
+								wi->dev_info.max_segs, ptr,
+								lineWidth, L_VAR,
+								LINESTYLE(idx), PIXVALUE(idx));
+						ptr += wi->dev_info.max_segs;
+						X_idx -= wi->dev_info.max_segs;
+					}
+					wi->dev_info.xg_seg(wi->dev_info.user_state,
+							X_idx, ptr,
+							lineWidth, L_VAR,
+							LINESTYLE(idx), PIXVALUE(idx));
+				}
+			} else {
+				StoreIDX = X_idx;
+				if (thisList->numPoints > 0 && (!noLines) && (X_idx > 0)) {
+					ptr = Xsegs[1];
+					while (X_idx > wi->dev_info.max_segs) {
+						wi->dev_info.xg_seg(wi->dev_info.user_state,
+								wi->dev_info.max_segs, ptr,
+								lineWidth, L_VAR,
+								LINESTYLE(1), PIXVALUE(2));
+						ptr += wi->dev_info.max_segs;
+						X_idx -= wi->dev_info.max_segs;
+					}
+					wi->dev_info.xg_seg(wi->dev_info.user_state,
+							X_idx, ptr,
+							lineWidth, L_VAR,
+							LINESTYLE(1), PIXVALUE(2));
+				}
+				XFlush (disp);
+				for (X_idx=1;X_idx<theDelay;X_idx++) {
+					;
+				}
+				X_idx = StoreIDX;
+				if ((thisList->numPoints > 0) && (!noLines) && (X_idx > 0)) {
+					ptr = Xsegs[1];
+					while (X_idx > wi->dev_info.max_segs) {
+						wi->dev_info.xg_seg(wi->dev_info.user_state,
+								wi->dev_info.max_segs, ptr,
+								lineWidth, L_VAR,
+								16, (int)(1));
+						/*LINESTYLE(8), (int)(1));*/
+						ptr += wi->dev_info.max_segs;
+						X_idx -= wi->dev_info.max_segs;
+					}
+					wi->dev_info.xg_seg(wi->dev_info.user_state,
+							X_idx, ptr,
+							lineWidth, L_VAR,
+							16,(int)(1));
+				}
 			}
-		    }
-		    else {
-			/* Distinctive markers */
-			wi->dev_info.xg_dot(wi->dev_info.user_state,
-					    Xsegs[1][X_idx - 1].x2,
-					    Xsegs[1][X_idx - 1].y2,
-					    P_MARK, MARKSTYLE(idx),
-					    PIXVALUE(idx));
-		    }
-		}
-	    }
-	    /* Handle last bar */
-	    if ((thisList->numPoints > 0) && PM_BOOL("BarGraph")) {
-		int     barPixels,
-		        baseSpot;
-		XSegment line;
-
-		barPixels = (int) ((PM_DBL("BarWidth") / 
-				   wi->XUnitsPerPixel) + 0.5);
-		if (barPixels <= 0)
-		    barPixels = 1;
-		baseSpot = SCREENY(wi, PM_DBL("BarBase"));
-		line.x1 = line.x2 = Xsegs[1][X_idx - 1].x2 +
-					(int) ((PM_DBL("BarOffset") * idx /
-					    wi->XUnitsPerPixel) + 0.5);
-		if (PM_BOOL("StackGraph") && idx != 0)
-		    line.y1 = Xsegs[0][X_idx - 1].y2;
-		else
-		    line.y1 = baseSpot;
-		line.y2 = Xsegs[1][X_idx - 1].y2;
-		wi->dev_info.xg_seg(wi->dev_info.user_state,
-				    1, &line, barPixels, L_VAR,
-				    LINESTYLE(idx), PIXVALUE(idx));
-	    }
-
-	    /* Draw segments */
-            if (!PM_BOOL("Animate")) {
-	      if (thisList->numPoints > 0 && (!noLines) && (X_idx > 0)) {
-		ptr = Xsegs[1];
-		while (X_idx > wi->dev_info.max_segs) {
-		    wi->dev_info.xg_seg(wi->dev_info.user_state,
-					wi->dev_info.max_segs, ptr,
-					lineWidth, L_VAR,
-					LINESTYLE(idx), PIXVALUE(idx));
-		    ptr += wi->dev_info.max_segs;
-		    X_idx -= wi->dev_info.max_segs;
-		}
-		wi->dev_info.xg_seg(wi->dev_info.user_state,
-				    X_idx, ptr,
-				    lineWidth, L_VAR,
-				    LINESTYLE(idx), PIXVALUE(idx));
-	      }
-            } else {
-              StoreIDX = X_idx;
-	      if (thisList->numPoints > 0 && (!noLines) && (X_idx > 0)) {
-		ptr = Xsegs[1];
-		while (X_idx > wi->dev_info.max_segs) {
-		    wi->dev_info.xg_seg(wi->dev_info.user_state,
-					wi->dev_info.max_segs, ptr,
+			/* Next subset */
+			lastList = thisList;
+			thisList = thisList->next;
+		} /* End While */
+	}
+	if (PM_BOOL("Animate")) {
+		X_idx = StoreIDX;
+		thisList = lastList;
+		if (thisList->numPoints > 0 && (!noLines) && (X_idx > 0)) {
+			ptr = Xsegs[1];
+			while (X_idx > wi->dev_info.max_segs) {
+				wi->dev_info.xg_seg(wi->dev_info.user_state,
+						wi->dev_info.max_segs, ptr,
+						lineWidth, L_VAR,
+						LINESTYLE(1), PIXVALUE(2));
+				ptr += wi->dev_info.max_segs;
+				X_idx -= wi->dev_info.max_segs;
+			}
+			wi->dev_info.xg_seg(wi->dev_info.user_state,
+					X_idx, ptr,
 					lineWidth, L_VAR,
 					LINESTYLE(1), PIXVALUE(2));
-		    ptr += wi->dev_info.max_segs;
-		    X_idx -= wi->dev_info.max_segs;
 		}
-		wi->dev_info.xg_seg(wi->dev_info.user_state,
-				    X_idx, ptr,
-				    lineWidth, L_VAR,
-				    LINESTYLE(1), PIXVALUE(2));
-	      }
-              XFlush (disp);
-	      for (X_idx=1;X_idx<theDelay;X_idx++);
-              X_idx = StoreIDX;
-	      if ((thisList->numPoints > 0) && (!noLines) && (X_idx > 0)) {
-		ptr = Xsegs[1];
-		while (X_idx > wi->dev_info.max_segs) {
-		    wi->dev_info.xg_seg(wi->dev_info.user_state,
-					wi->dev_info.max_segs, ptr,
-					lineWidth, L_VAR,
-					16, (int)(1));
-					/*LINESTYLE(8), (int)(1));*/
-		    ptr += wi->dev_info.max_segs;
-		    X_idx -= wi->dev_info.max_segs;
-		}
-		wi->dev_info.xg_seg(wi->dev_info.user_state,
-				    X_idx, ptr,
-				    lineWidth, L_VAR,
-				    16,(int)(1));
-	      }
-            }
-	    /* Next subset */
-            lastList = thisList;
-            thisList = thisList->next;
-	} /* End While */
-      }
-        if (PM_BOOL("Animate")) {
-          X_idx = StoreIDX;
-          thisList = lastList;
-	  if (thisList->numPoints > 0 && (!noLines) && (X_idx > 0)) {
-	    ptr = Xsegs[1];
-	       while (X_idx > wi->dev_info.max_segs) {
-		    wi->dev_info.xg_seg(wi->dev_info.user_state,
-					wi->dev_info.max_segs, ptr,
-					lineWidth, L_VAR,
-					LINESTYLE(1), PIXVALUE(2));
-		    ptr += wi->dev_info.max_segs;
-		    X_idx -= wi->dev_info.max_segs;
-		}
-		wi->dev_info.xg_seg(wi->dev_info.user_state,
-				    X_idx, ptr,
-				    lineWidth, L_VAR,
-				    LINESTYLE(1), PIXVALUE(2));
-	    }
-          }
-    XFlush (disp);
+	}
+	XFlush (disp);
 }
 
 

@@ -135,7 +135,7 @@ Ptr     tptr;
 	    *((long *) tptr) = SIG_GOOD;
 	(void) fprintf(stderr,
 		       "*** Out of memory in %s (current allocation %d).\n",
-		       action, memused, n);
+		       action, memused);
 
 	abort();
     }

@@ -342,7 +342,7 @@ XFontStruct **font_info;	/* Returned font information */
     /* First attempt to interpret as font family/size */
     if (PM_INT("Output Device") == D_XWINDOWS) {
 	(void) strcpy(name_copy, name);
-	if (font_size = index(name_copy, '-')) {
+	if ((font_size = index(name_copy, '-'))) {
 	    *font_size = '\0';
 	    font_family = name_copy;
 	    font_size++;
@@ -358,7 +358,7 @@ XFontStruct **font_info;	/* Returned font information */
 
 		/* Load first one that you can */
 		for (i = 0; i < font_count; i++)
-		    if (*font_info = XLoadQueryFont(param_disp, font_list[i]))
+		    if ((*font_info = XLoadQueryFont(param_disp, font_list[i])))
 			break;
 		if (*font_info)
 		    return 1;
@@ -367,6 +367,7 @@ XFontStruct **font_info;	/* Returned font information */
 	/* Assume normal font name */
 	return (int) (*font_info = XLoadQueryFont(param_disp, name));
     }
+	return 0;
 }
 
 

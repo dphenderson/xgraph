@@ -5,9 +5,12 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include <X11/Xlib.h>
 #include "hard_devices.h"
 #include "xgout.h"
+
+extern void* Malloc(unsigned n);
 
 #define COLOR	"DarkSlateGray"
 
@@ -222,7 +225,7 @@ int     style;			/* Text style (above)     */
      *		  _ObjFill,_Vspace,StrList),
      */
     /* font ok too */
-    style == T_AXIS ? tgif->axis_font :
+    font = style == T_AXIS ? tgif->axis_font :
 	tgif->title_font;
     /* ok 0, 1 as in tgif */
     size = style == T_AXIS ? tgif->axis_size :

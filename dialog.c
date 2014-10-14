@@ -16,6 +16,7 @@
 #include <X11/Xutil.h>
 
 void    do_error();
+int xgraph_getline(char **tptr, char *lptr);
 
 #define MAXCHBUF	1024
 
@@ -777,7 +778,7 @@ xtb_frame *frame;		/* Returned frame */
     memset(new_info->lines, 0, sizeof(Window) * E_LINES);
 
     lineptr = text;
-    while (getline(&lineptr, line)) {
+    while (xgraph_getline(&lineptr, line)) {
 	if (new_info->num_lines >= new_info->alloc_lines) {
 	    int old_alloc_lines_size = new_info->alloc_lines * sizeof(Window);
 	    new_info->alloc_lines *= 2;
@@ -888,7 +889,7 @@ char   *err_text;
 
 
 int 
-getline(tptr, lptr)
+xgraph_getline(tptr, lptr)
 char  **tptr;
 char   *lptr;
 

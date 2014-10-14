@@ -251,7 +251,7 @@ int     o;
 static char *def_str;
 
 #define DEF(name, type) \
-if (def_str = XGetDefault(disp, Prog_Name, name)) { \
+if ((def_str = XGetDefault(disp, Prog_Name, name))) { \
     param_set(name, type, def_str); \
 }
 
@@ -448,7 +448,7 @@ int     do_it;
 		    if (idx + 1 >= argc)
 			argerror("missing coordinate(s)",
 				 argv[idx]);
-		    if (hi = index(argv[idx + 1], ',')) {
+		    if ((hi = index(argv[idx + 1], ','))) {
 			char    low[MAXLO];
 
 			(void) strncpy(low, argv[idx + 1], hi - argv[idx + 1]);
@@ -471,7 +471,7 @@ int     do_it;
 		    if (idx + 1 >= argc)
 			argerror("missing coordinate(s)",
 				 argv[idx]);
-		    if (hi = index(argv[idx + 1], ',')) {
+		    if ((hi = index(argv[idx + 1], ','))) {
 			char    low[MAXLO];
 
 			(void) strncpy(low, argv[idx + 1], hi - argv[idx + 1]);

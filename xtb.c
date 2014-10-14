@@ -16,9 +16,11 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <string.h>  /* for strcpy */
+#include <stdio.h>
 #include "xtb.h"
 
 extern void abort();
+extern XContext XrmUniqueQuark();
 
 #define MAXKEYS		10
 
@@ -865,6 +867,7 @@ unsigned long pix;
 }
 
 /* For debugging */
+void
 focus_evt(evt)
 XEvent *evt;
 {

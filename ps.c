@@ -241,10 +241,10 @@ int     flags;			/* Output options */
 
     if (flags & D_DOCU) {
 	OUT(psFile, "%%%%BoundingBox: %ld %ld %ld %ld\n",
-	    0, 0,
-	    (int) (((double) width) /
+	    (long)0, (long)0,
+	    (long)(((double) width) /
 		   (MICRONS_PER_INCH * INCHES_PER_POINT) + 0.5),
-	    (int) (((double) height) /
+	    (long)(((double) height) /
 		   (MICRONS_PER_INCH * INCHES_PER_POINT) + 0.5)
 	    );
 	psHeader(psFile, 1);

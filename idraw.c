@@ -7,9 +7,12 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include <X11/Xlib.h>
 #include "hard_devices.h"
 #include "xgout.h"
+
+extern void* Malloc(unsigned n);
 
 #define HEIGHT	792
 #define FIX(X)	X = HEIGHT - X;
