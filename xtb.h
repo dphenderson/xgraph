@@ -64,11 +64,7 @@ DECLARE(xtb_unregister, int, (Window win, xtb_data * info));
  * Command button frame
  */
 
-DECLARE(xtb_bt_new, void, (Window win, char *text,
-			   xtb_hret(*func) (Window win, int state,
-					    xtb_data val),
-			   xtb_data val,
-			   xtb_frame * frame));
+DECLARE(xtb_bt_new, void, (Window win, char *text, xtb_hret (*func)(Window win, int state, xtb_data val), xtb_data val, xtb_frame * frame));
  /* Creates new button  */
 
 DECLARE(xtb_bt_get, int, (Window win, xtb_data * stuff, int *na));

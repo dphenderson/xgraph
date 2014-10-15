@@ -245,7 +245,6 @@ int     o;
 	PlotData[idx].list = (PointList *) 0;
     }
 }
-
 
 
 static char *def_str;
@@ -320,7 +319,6 @@ ReadDefaults()
 
     DEF("ReverseVideo", BOOL);
 }
-
 
 #define FS(str)	(void) fprintf(stderr, str)
 
@@ -367,7 +365,6 @@ char   *err,
 
     exit(1);
 }
-
 #define ARG(opt, name) \
 if (strcmp(argv[idx], opt) == 0) { \
     if (do_it) param_set(name, BOOL, "on"); \

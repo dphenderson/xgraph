@@ -68,7 +68,6 @@ static int do_bool();
 
 #define DUP(str)	\
 strcpy((char *) Malloc((unsigned) (strlen(str)+1)), (str))
-
 
 void
 param_init(disp, cmap)
@@ -88,7 +87,6 @@ Colormap cmap;			/* Colormap for colors */
 	param_scrn = DefaultScreen(disp);
     }
 }
-
 
 
 void
@@ -127,7 +125,6 @@ char   *val;			/* Text form for value */
 	(void) Free((char *) (entry->text_form));
     entry->text_form = DUP(val);
 }
-
 
 void
 param_reset(name, val)
@@ -151,7 +148,6 @@ char   *val;			/* Text form for value */
     else
 	(void) fprintf(stderr, "Cannot reset unknown parameter `%s'\n", name);
 }
-
 
 
 
@@ -183,7 +179,6 @@ params *val;			/* Result value      */
 	return (params *) 0;
     }
 }
-
 
 static void
 free_resource(val)
@@ -214,7 +209,6 @@ params *val;			/* Value to free */
     }
     (void) Free((char *) val);
 }
-
 
 
 static params *
@@ -280,7 +274,6 @@ char   *form;			/* Textual form       */
     }
     return result;
 }
-
 
 
 static int
@@ -313,7 +306,6 @@ XColor *color;			/* Returned color */
     }
     return result;
 }
-
 
 
 static int
@@ -369,7 +361,6 @@ XFontStruct **font_info;	/* Returned font information */
     }
 	return 0;
 }
-
 
 static int
 do_style(list, val)
@@ -421,7 +412,6 @@ param_style *val;		/* Line style returned    */
 	return 0;
     }
 }
-
 
 static char *positive[] =
 {"on", "yes", "true", "1", "affirmative", (char *) 0};
@@ -458,7 +448,6 @@ int    *val;			/* Returned value        */
     }
     return 0;
 }
-
 
 
 /*ARGSUSED*/
@@ -506,7 +495,6 @@ param_dump()
 {
     st_foreach(param_table, dump_it, (char *) 0);
 }
-
 
 
 #ifdef HAVE_STRCASECMP

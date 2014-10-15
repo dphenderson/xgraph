@@ -45,7 +45,6 @@ char   *st_bad_gen = "null or zero generator";
 int     st_numhash(), st_ptrhash(), st_numcmp(), st_ptrcmp();
 static void rehash();
 static void errRaise();
-
 
 st_table *
 st_init_table_with_params(compare, hash, size, density, grow_factor,
@@ -98,7 +97,6 @@ int     (*hash) ();
 				     ST_DEFAULT_GROW_FACTOR,
 				     ST_DEFAULT_REORDER_FLAG);
 }
-
 
 void
 st_Free_table(table)
@@ -121,7 +119,6 @@ st_table *table;
     Free((char *) table->bins);
     Free((char *) table);
 }
-
 
 #define PTR_NOT_EQUAL(table, ptr, user_key)\
 (ptr != nil(st_table_entry) && !EQUAL(table->compare, user_key, (ptr)->key))
@@ -163,7 +160,6 @@ char  **value;
 	return 1;
     }
 }
-
 #define ADD_DIRECT(table, key, value, hash_val, new)\
 {\
     if (table->num_entries/table->num_bins >= table->max_density) {\
@@ -486,7 +482,6 @@ char   *y;
 {
     return ST_NUMCMP(x, y);
 }
-
 st_generator *
 st_init_gen(table)
 st_table *table;

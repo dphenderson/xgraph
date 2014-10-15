@@ -151,7 +151,6 @@ rdFindMax()
     }
     return max;
 }
-
 
 typedef enum line_type {
     EMPTY, COMMENT, SETNAME, DRAWPNT, MOVEPNT, SETPARAM, ERROR
@@ -289,7 +288,6 @@ LineInfo *result;		/* Returned result */
     }
     return result->type;
 }
-
 
 int
 ReadData(stream, filename)
@@ -357,5 +355,4 @@ char   *filename;
     else
 	return rdFindMax();
 }
-
 

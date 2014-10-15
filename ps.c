@@ -73,7 +73,6 @@ static double PS_scale;		/* devs/micron */
  */
 
 static void psScale(), psFonts(), psMarks(), psText(), psSeg(), psDot(), psEnd();
-
 
 /*
  * Local structures
@@ -94,7 +93,6 @@ struct userInfo {
     double  axis_size;
     int     flags;
 };
-
 
 
 int 
@@ -191,7 +189,6 @@ char    errmsg[ERRBUFSIZE];	/* Returned error message */
     PS("%%\n%% Main body begins here\n%%\n");
     return 1;
 }
-
 
 
 
@@ -216,7 +213,6 @@ int     docu_flag;
     }
     PS("%%\n");
 }
-
 
 static void 
 psScale(psFile, width, height, flags)
@@ -313,7 +309,6 @@ int     flags;			/* Output options */
     PS("%% Set the scale\n");
     OUT(psFile, "%lg %lg scale\n", factor, factor);
 }
-
 
 
 static void 
@@ -392,7 +387,6 @@ FILE   *psFile;			/* Output stream                */
     PS("} def\n");
     PS("%%\n");
 }
-
 
 
 static void 
@@ -439,7 +433,6 @@ FILE   *psFile;
     PS("newpath x y moveto x size add y size add lineto\n");
     PS("x size sub y size add lineto closepath fill} def\n");
 }
-
 
 
 static void 
@@ -478,7 +471,6 @@ int     style;			/* Style                      */
     }
     OUT(ui->psFile, "(%s) %d %d %d just-string\n", text, x, IY(y), just);
 }
-
 
 
 /*ARGSUSED*/
@@ -555,7 +547,6 @@ int     color;			/* Zero to seven              */
     }
     PSU("stroke\n");
 }
-
 
 
 /*ARGSUSED*/

@@ -34,7 +34,6 @@ static short gray_bits[] =
 
 static void make_msg_box();
 static void del_msg_box();
-
 
 #define D_VPAD	2
 #define D_HPAD	2
@@ -360,7 +359,6 @@ xtb_data info;			/* User data         */
     }
     return XTB_HANDLED;
 }
-
 
 /* Indices for frames made in make_dialog */
 enum d_frames_defn {
@@ -584,7 +582,6 @@ xtb_frame *frame;		/* Returned window/size   */
     frame->height += (2 * D_BRDR);
     *okbtn = AF(OK_F);
 }
-
 
 
 #ifdef SHADOW
@@ -611,7 +608,6 @@ int     w,
 }
 
 #endif
-
 
 
 #define SH_W	5
@@ -688,7 +684,6 @@ xtb_data cookie;		/* Info passed to do_hardcopy */
     XUnmapWindow(disp, shadow);
 #endif
 }
-
 
 
 /*ARGSUSED*/
@@ -885,7 +880,6 @@ char   *err_text;
     else
 	fputs(err_text, stderr);
 }
-
 
 
 int 
@@ -915,7 +909,6 @@ char   *lptr;
 	return 0;
     }
 }
-
 
 
 static void 

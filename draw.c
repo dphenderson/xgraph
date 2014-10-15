@@ -66,7 +66,6 @@ LocalWin *win_info;		/* Window information */
 	DrawData(win_info);
     }
 }
-
 
 
 
@@ -98,7 +97,6 @@ LocalWin *wi;			/* Window information    */
 			 wi->dev_info.axis_pad,
 			 "Second Derivative", T_UPPERRIGHT, T_TITLE);
 }
-
 
 
 
@@ -198,7 +196,6 @@ LocalWin *wi;			/* Window information          */
      */
     return 1;
 }
-
 static void
 DrawGridAndAxis(wi)
 LocalWin *wi;			/* Window information         */
@@ -424,7 +421,6 @@ LocalWin *wi;			/* Window information         */
 			    4, bb, PM_INT("GridSize"), L_AXIS, 0, 0);
     }
 }
-
 static double gridBase,
         gridStep,
         gridJuke[101];
@@ -514,7 +510,6 @@ stepGrid()
     }
     return (gridBase + gridJuke[gridCurJuke]);
 }
-
 static double
 RoundUp(val)
 double  val;			/* Value */
@@ -559,7 +554,6 @@ double  val;			/* Value */
     }
     return val;
 }
-
 static void
 WriteValue(str, fmt, val, expv, logFlag)
 char   *str;			/* String to write into */
@@ -605,7 +599,6 @@ int     logFlag;		/* Is this a log axis?  */
     else
 	(void) sprintf(str, fmt, val);
 }
-
 
 #define LEFT_CODE	0x01
 #define RIGHT_CODE	0x02
@@ -852,7 +845,6 @@ LocalWin *wi;
     }
     XFlush (disp);
 }
-
 
 static void
 DrawData(wi)
@@ -1150,7 +1142,6 @@ LocalWin *wi;
 	}
 	XFlush (disp);
 }
-
 
 
 static void

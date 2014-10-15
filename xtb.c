@@ -51,7 +51,6 @@ extern char *Malloc();
 
 #define STRDUP(str)	(strcpy(Malloc((unsigned) (strlen(str)+1)), (str)))
 extern void Free();
-
 
 
 void
@@ -72,7 +71,6 @@ XFontStruct *font;		/* Normal font      */
     back_pix = background;
     norm_font = font;
 }
-
 
 #define gray_width 32
 #define gray_height 32
@@ -177,7 +175,6 @@ int     gray_p;			/* Gray if set      */
     }
     return t_gc;
 }
-
 
 
 static XContext h_context = (XContext) 0;
@@ -267,7 +264,6 @@ xtb_data *info;
     else
 	return 0;
 }
-
 
 
 #define BT_HPAD	3
@@ -501,7 +497,6 @@ xtb_data *info;
 	XDestroyWindow(t_disp, win);
     }
 }
-
 
 
 #define BR_XPAD		2
@@ -655,7 +650,6 @@ Window  win;
 	XDestroyWindow(t_disp, win);
     }
 }
-
 
 
 /* Text widget */
@@ -751,7 +745,6 @@ Window  win;
 	XDestroyWindow(t_disp, win);
     }
 }
-
 
 /*
  * Input text widget
@@ -1176,7 +1169,6 @@ xtb_data *info;
 	XDestroyWindow(t_disp, win);
     }
 }
-
 
 /*
  * Simple colored output frame - usually used for drawing lines
@@ -1218,7 +1210,6 @@ Window  win;
 {
     XDestroyWindow(t_disp, win);
 }
-
 
 
 
@@ -1326,7 +1317,6 @@ VARARGS(xtb_vert, xtb_fmt *, (xtb_just just, int padding, int interspace,...))
     }
     return ret;
 }
-
 
 static void
 xtb_fmt_setpos(def, x, y)

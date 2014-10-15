@@ -26,7 +26,6 @@ struct x_state {
 void    text_X();
 void    seg_X();
 void    dot_X();
-
 
 typedef struct attr_set {
     char    lineStyle[MAXLS];
@@ -61,7 +60,6 @@ static unsigned int mark_w = mark1_width;
 static unsigned int mark_h = mark1_height;
 static int mark_cx = mark1_x_hot;
 static int mark_cy = mark1_y_hot;
-
 
 
 void 
@@ -110,7 +108,6 @@ xgOut  *out_info;		/* Information to set   */
     new_state->win = new_win;
     out_info->user_state = (char *) new_state;
 }
-
 
 
 static void 
@@ -272,7 +269,6 @@ int     d_xorg,
     }
     return dot_gc;
 }
-
 
 
 void 
@@ -352,7 +348,6 @@ int     style;			/* Text style (above)     */
 		textGC(st->win, font),
 		rx, ry + bb.ascent, text, len);
 }
-
 
 
 void 
@@ -428,7 +423,6 @@ int     color;			/* Line color (if any)  */
     }
     XDrawSegments(disp, st->win, gc, segs, ns);
 }
-
 
 #define LAST_CHECK
 
