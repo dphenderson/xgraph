@@ -105,163 +105,147 @@ typedef char *Ptr;
 /* _chaina():
  *	Check things for validity and allocate space
  */
-private Ptr
-_chaina(n, routine, action, tptr)
-unsigned n;
-
-Ptr(*routine) ();
-char   *action;
-Ptr     tptr;
+private Ptr _chaina(unsigned n, Ptr (*routine)(), char *action, Ptr tptr)
 {
-    char   *ptr;
+	char   *ptr;
 
-    if (n == 0) {
-	(void) fprintf(stderr, "*** %s zero length block.\n",
-		       action);
-	if (tptr != (Ptr) 0) {
-	    ptr = tptr;
-	    *((long *) ptr) = SIG_GOOD;
-	    memused += *((unsigned *) &ptr[sizeof(long)]);
-	    memalloc++;
+	if (n == 0) {
+		(void) fprintf(stderr, "*** %s zero length block.\n", action);
+
+		if (tptr != (Ptr) 0) {
+			ptr = tptr;
+			*((long *) ptr) = SIG_GOOD;
+			memused += *((unsigned *) &ptr[sizeof(long)]);
+			memalloc++;
+		}
+		abort();
 	}
-	abort();
-    }
 
-    ptr = (tptr == (Ptr) 0) ? (char *) (*routine) (n + OVERHEAD) :
-	(char *) (*routine) (tptr, n + OVERHEAD);
+	ptr = (tptr == (Ptr) 0) ? (char *) (*routine) (n + OVERHEAD) : (char *) (*routine) (tptr, n + OVERHEAD);
 
-    if (ptr == NIL(char)) {
-	if (tptr != (Ptr) 0)
-	    *((long *) tptr) = SIG_GOOD;
-	(void) fprintf(stderr,
-		       "*** Out of memory in %s (current allocation %d).\n",
-		       action, memused);
+	if (ptr == NIL(char)) {
+		if (tptr != (Ptr) 0) {
+			*((long *) tptr) = SIG_GOOD;
+		}
+		(void) fprintf(stderr, "*** Out of memory in %s (current allocation %d).\n", action, memused);
 
-	abort();
-    }
-    *((long *) ptr) = SIG_GOOD;
-    memused += (*((unsigned *) &ptr[sizeof(long)]) = n);
-    memalloc++;
-    ptr += OVERHEAD;
-    return ((Ptr) ptr);
+		abort();
+	}
+
+	*((long *) ptr) = SIG_GOOD;
+	memused += (*((unsigned *) &ptr[sizeof(long)]) = n);
+	memalloc++;
+	ptr += OVERHEAD;
+
+	return ((Ptr) ptr);
 }				/* end _chaina */
 
 
 /* _chainc():
  *	Check the pointer given
  */
-private unsigned
-_chainc(ptr, action)
-char  **ptr;
-char   *action;
+private unsigned _chainc(char **ptr, char *action)
 {
-    static char *msg = "*** %s %s pointer.\n";
+	static char *msg = "*** %s %s pointer.\n";
 
-    if (*ptr == NIL(char)) {
-	(void) fprintf(stderr, msg, action, "nil");
-	abort();
-    }
-    *ptr -= OVERHEAD;
-    switch (*((long *) *ptr)) {
-    case SIG_GOOD:
-	return (*((unsigned *) &((*ptr)[sizeof(long)])));
-    case SIG_FREE:
-	(void) fprintf(stderr, msg, action, "free");
-	abort();
-    default:
-	(void) fprintf(stderr, msg, action, "invalid");
-	abort();
-    }
-    return (0);
+	if (*ptr == NIL(char)) {
+		(void) fprintf(stderr, msg, action, "nil");
+		abort();
+	}
+
+	*ptr -= OVERHEAD;
+
+	switch (*((long *) *ptr)) {
+		case SIG_GOOD:
+			return (*((unsigned *) &((*ptr)[sizeof(long)])));
+		case SIG_FREE:
+			(void) fprintf(stderr, msg, action, "free");
+			abort();
+		default:
+			(void) fprintf(stderr, msg, action, "invalid");
+			abort();
+	}
+	return (0);
 }				/* end _chainc */
 
 
 /* Malloc():
  *	real alloc
  */
-public  Ptr
-Malloc(n)
-unsigned n;
+public Ptr Malloc(unsigned n)
 {
-    static char *routine = "malloc";
+	static char *routine = "malloc";
 
-    return (_chaina(n, malloc, routine, (Ptr) 0));
+	return (_chaina(n, malloc, routine, (Ptr) 0));
 }				/* end Malloc */
 
 
 /* Calloc():
  *	real alloc
  */
-public  Ptr
-Calloc(n, sz)
-unsigned n,
-        sz;
+public Ptr Calloc(unsigned n, unsigned sz)
 {
-    Ptr     ptr;
-    static char *routine = "calloc";
+	Ptr     ptr;
+	static char *routine = "calloc";
 
-    n *= sz;
-    ptr = _chaina(n, malloc, routine, (Ptr) 0);
-    memset((char *) ptr, 0, n);
-    return (ptr);
+	n *= sz;
+	ptr = _chaina(n, malloc, routine, (Ptr) 0);
+	memset((char *) ptr, 0, n);
+	return (ptr);
 }				/* end Calloc */
 
 
 /* Realloc():
  *	real alloc
  */
-public  Ptr
-Realloc(ptr, n)
-Ptr     ptr;
-unsigned n;
+public Ptr Realloc(Ptr ptr, unsigned n)
 {
-    static char *routine = "realloc";
+	static char *routine = "realloc";
 
-    memused -= _chainc((char **) &ptr, routine);
-    memalloc--;
-    *((long *) ptr) = SIG_FREE;
-    return (_chaina(n, realloc, routine, ptr));
+	memused -= _chainc((char **) &ptr, routine);
+	memalloc--;
+
+	*((long *) ptr) = SIG_FREE;
+
+	return (_chaina(n, realloc, routine, ptr));
 }				/* end Realloc */
 
 
 /* Free():
  *	free memory counting the number of bytes freed
  */
-public void
-Free(ptr)
-Ptr     ptr;
+public void Free(Ptr ptr)
 {
-    static char *routine = "free";
+	static char *routine = "free";
 
-    memused -= _chainc((char **) &ptr, routine);
-    memalloc--;
-    *((long *) ptr) = SIG_FREE;
-    free(ptr);
+	memused -= _chainc((char **) &ptr, routine);
+	memalloc--;
+
+	*((long *) ptr) = SIG_FREE;
+
+	free(ptr);
 }				/* end Free */
 
 
 /* MemChain():
  *	Dump the chain
  */
-public void
-MemChain()
+public void MemChain()
 {
-    if (memused == 0 && memalloc == 0)
-	(void) fprintf(stdout, "\tNo memory allocated.\n");
-    else {
-	(void) fprintf(stdout, "\t%u Bytes allocated in %u chunks.\n", memused,
-		       memalloc);
-	(void) fprintf(stdout, "\tAverage chunk length %u bytes.\n",
-		       memused / memalloc);
-    }
+	if (memused == 0 && memalloc == 0) {
+		(void)fprintf(stdout, "\tNo memory allocated.\n");
+	}
+	else {
+		(void)fprintf(stdout, "\t%u Bytes allocated in %u chunks.\n", memused, memalloc);
+		(void)fprintf(stdout, "\tAverage chunk length %u bytes.\n", memused / memalloc);
+	}
 }				/* end MemChain */
 
 
 /* MemStat():
  *	return the amount of memory in use
  */
-public unsigned
-MemStat()
+public unsigned MemStat()
 {
     return (memused);
 }				/* end MemStat */
@@ -270,9 +254,7 @@ MemStat()
 /* MemPtr():
  *	return the amount of memory used by the pointer
  */
-public unsigned
-MemPtr(ptr)
-Ptr     ptr;
+public unsigned MemPtr(Ptr ptr)
 {
     static char *routine = "get size";
 
