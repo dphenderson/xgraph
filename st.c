@@ -46,78 +46,66 @@ int     st_numhash(), st_ptrhash(), st_numcmp(), st_ptrcmp();
 static void rehash();
 static void errRaise();
 
-st_table *
-st_init_table_with_params(compare, hash, size, density, grow_factor,
-			  reorder_flag)
-int     (*compare) ();
-int     (*hash) ();
-int     size;
-int     density;
-double  grow_factor;
-int     reorder_flag;
-
 /* Detailed table allocator */
+st_table *st_init_table_with_params(int (*compare)(), int (*hash)(), int size, int density, double grow_factor, int reorder_flag)
 {
-    st_table *new;
+	st_table *new;
 
-    new = alloc(st_table);
-    if (!new) {
-	errRaise(st_pkg_name, ST_NO_MEM, st_no_mem);
-	/* NOTREACHED */
-    }
-    new->compare = compare;
-    new->hash = hash;
-    new->num_entries = 0;
-    new->max_density = density;
-    new->grow_factor = grow_factor;
-    new->reorder_flag = reorder_flag;
-    if (size <= 0) {
-	size = 1;
-    }
-    new->num_bins = size;
-    new->bins =
-	(st_table_entry **) Calloc((unsigned) size, sizeof(st_table_entry *));
-    if (!new->bins) {
-	Free((char *) new);
-	errRaise(st_pkg_name, ST_NO_MEM, st_no_mem);
-	/* NOTREACHED */
-    }
-    return new;
+	new = alloc(st_table);
+
+	if (!new) {
+		errRaise(st_pkg_name, ST_NO_MEM, st_no_mem);
+		/* NOTREACHED */
+	}
+
+	new->compare = compare;
+	new->hash = hash;
+	new->num_entries = 0;
+	new->max_density = density;
+	new->grow_factor = grow_factor;
+	new->reorder_flag = reorder_flag;
+
+	if (size <= 0) {
+		size = 1;
+	}
+
+	new->num_bins = size;
+	new->bins = (st_table_entry **)Calloc((unsigned)size, sizeof(st_table_entry *));
+
+	if (!new->bins) {
+		Free((char *)new);
+		errRaise(st_pkg_name, ST_NO_MEM, st_no_mem);
+		/* NOTREACHED */
+	}
+
+	return new;
 }
-
-st_table *
-st_init_table(compare, hash)
-int     (*compare) ();
-int     (*hash) ();
 
 /* Default table allocator */
+st_table *st_init_table(int (*compare)(), int (*hash)())
 {
-    return st_init_table_with_params(compare, hash, ST_DEFAULT_INIT_TABLE_SIZE,
-				     ST_DEFAULT_MAX_DENSITY,
-				     ST_DEFAULT_GROW_FACTOR,
-				     ST_DEFAULT_REORDER_FLAG);
+	return st_init_table_with_params(compare, hash, ST_DEFAULT_INIT_TABLE_SIZE, ST_DEFAULT_MAX_DENSITY, ST_DEFAULT_GROW_FACTOR, ST_DEFAULT_REORDER_FLAG);
 }
 
-void
-st_Free_table(table)
-st_table *table;
-
 /* Destroy a table */
+void st_Free_table(st_table *table)
 {
-    register st_table_entry *ptr,
-           *next;
-    int     i;
+	register st_table_entry *ptr,
+			 *next;
+	int     i;
 
-    for (i = 0; i < table->num_bins; i++) {
-	ptr = table->bins[i];
-	while (ptr != nil(st_table_entry)) {
-	    next = ptr->next;
-	    Free((char *) ptr);
-	    ptr = next;
+	for (i = 0; i < table->num_bins; i++) {
+		ptr = table->bins[i];
+
+		while (ptr != nil(st_table_entry)) {
+			next = ptr->next;
+			Free((char *)ptr);
+			ptr = next;
+		}
 	}
-    }
-    Free((char *) table->bins);
-    Free((char *) table);
+
+	Free((char *)table->bins);
+	Free((char *)table);
 }
 
 #define PTR_NOT_EQUAL(table, ptr, user_key)\
@@ -135,30 +123,25 @@ st_table *table;
 	(table)->bins[hash_val] = (ptr);\
     }
 
-int 
-st_lookup(table, key, value)
-st_table *table;
-register char *key;
-char  **value;
-
 /* Look up item in table -- return zero if not found */
+int st_lookup(st_table *table, register char *key, char **value)
 {
-    int     hash_val;
-    register st_table_entry *ptr,
-          **last;
+	int     hash_val;
+	register st_table_entry *ptr,
+			 **last;
 
-    hash_val = do_hash(key, table);
+	hash_val = do_hash(key, table);
 
-    FIND_ENTRY(table, hash_val, key, ptr, last);
+	FIND_ENTRY(table, hash_val, key, ptr, last);
 
-    if (ptr == nil(st_table_entry)) {
-	return 0;
-    }
-    else {
-	if (value != nil(char *))
-	    *value = ptr->record;
-	return 1;
-    }
+	if (ptr == nil(st_table_entry)) {
+		return 0;
+	}
+	else {
+		if (value != nil(char *))
+			*value = ptr->record;
+		return 1;
+	}
 }
 #define ADD_DIRECT(table, key, value, hash_val, new)\
 {\
@@ -181,388 +164,347 @@ char  **value;
     } \
 }
 
-int 
-st_insert(table, key, value)
-register st_table *table;
-register char *key;
-char   *value;
-
 /* Insert an item into the table - replacing if it already exists */
+int st_insert(register st_table *table, register char *key, char *value)
 {
-    int     hash_val;
-    st_table_entry *new;
-    register st_table_entry *ptr,
-          **last;
+	int     hash_val;
+	st_table_entry *new;
+	register st_table_entry *ptr,
+			 **last;
 
-    hash_val = do_hash(key, table);
+	hash_val = do_hash(key, table);
 
-    FIND_ENTRY(table, hash_val, key, ptr, last);
+	FIND_ENTRY(table, hash_val, key, ptr, last);
 
-    if (ptr == nil(st_table_entry)) {
-	ADD_DIRECT(table, key, value, hash_val, new);
-	return 0;
-    }
-    else {
-	ptr->record = value;
-	return 1;
-    }
+	if (ptr == nil(st_table_entry)) {
+		ADD_DIRECT(table, key, value, hash_val, new);
+		return 0;
+	}
+	else {
+		ptr->record = value;
+		return 1;
+	}
 }
-
-void 
-st_add_direct(table, key, value)
-st_table *table;
-char   *key;
-char   *value;
 
 /* Add item to table without checking for existing item */
+void st_add_direct(st_table *table, char *key, char *value)
 {
-    int     hash_val;
-    st_table_entry *new;
+	int     hash_val;
+	st_table_entry *new;
 
-    hash_val = do_hash(key, table);
-    ADD_DIRECT(table, key, value, hash_val, new);
+	hash_val = do_hash(key, table);
+	ADD_DIRECT(table, key, value, hash_val, new);
 }
-
-int 
-st_find_or_add(table, key, slot)
-st_table *table;
-char   *key;
-char ***slot;
 
 /* Return slot for key - make one if one doesn't exist */
+int st_find_or_add(st_table *table, char *key, char ***slot)
 {
-    int     hash_val;
-    st_table_entry *new,
-           *ptr,
-          **last;
+	int     hash_val;
+	st_table_entry *new,
+				   *ptr,
+				   **last;
 
-    hash_val = do_hash(key, table);
+	hash_val = do_hash(key, table);
 
-    FIND_ENTRY(table, hash_val, key, ptr, last);
+	FIND_ENTRY(table, hash_val, key, ptr, last);
 
-    if (ptr == nil(st_table_entry)) {
-	ADD_DIRECT(table, key, (char *) 0, hash_val, new);
-	if (slot != nil(char **))
-	    *slot = &new->record;
-	return 0;
-    }
-    else {
-	if (slot != nil(char **))
-	    *slot = &ptr->record;
-	return 1;
-    }
+	if (ptr == nil(st_table_entry)) {
+		ADD_DIRECT(table, key, (char *)0, hash_val, new);
+
+		if (slot != nil(char **)) {
+			*slot = &new->record;
+		}
+
+		return 0;
+	}
+	else {
+		if (slot != nil(char **)) {
+			*slot = &ptr->record;
+		}
+
+		return 1;
+	}
 }
-
-int 
-st_find(table, key, slot)
-st_table *table;
-char   *key;
-char ***slot;
 
 /* Finds an entry in table */
+int st_find(st_table *table, char *key, char ***slot)
 {
-    int     hash_val;
-    st_table_entry *ptr,
-          **last;
+	int     hash_val;
+	st_table_entry *ptr,
+				   **last;
 
-    hash_val = do_hash(key, table);
+	hash_val = do_hash(key, table);
 
-    FIND_ENTRY(table, hash_val, key, ptr, last);
+	FIND_ENTRY(table, hash_val, key, ptr, last);
 
-    if (ptr == nil(st_table_entry)) {
-	return 0;
-    }
-    else {
-	if (slot != nil(char **))
-	    *slot = &ptr->record;
-	return 1;
-    }
+	if (ptr == nil(st_table_entry)) {
+		return 0;
+	}
+	else {
+		if (slot != nil(char **)) {
+			*slot = &ptr->record;
+		}
+
+		return 1;
+	}
 }
-
-static void 
-rehash(table)
-register st_table *table;
 
 /* Grows table */
+static void rehash(register st_table *table)
 {
-    register st_table_entry *ptr,
-           *next,
-          **old_bins = table->bins;
-    int     i,
-            old_num_bins = table->num_bins,
-            hash_val;
+	register st_table_entry *ptr,
+			 *next,
+			 **old_bins = table->bins;
+	int     i,
+			old_num_bins = table->num_bins,
+			hash_val;
 
-    table->num_bins = table->grow_factor * old_num_bins;
+	table->num_bins = table->grow_factor * old_num_bins;
 
-    if (table->num_bins % 2 == 0) {
-	table->num_bins += 1;
-    }
-
-    table->bins =
-	(st_table_entry **) Calloc((unsigned) table->num_bins,
-				   sizeof(st_table_entry *));
-
-    if (!table->bins) {
-	/* If out of memory: don't resize */
-	table->bins = old_bins;
-	table->num_bins = old_num_bins;
-	return;
-    }
-
-    table->num_entries = 0;
-
-    for (i = 0; i < old_num_bins; i++) {
-	ptr = old_bins[i];
-	while (ptr != nil(st_table_entry)) {
-	    next = ptr->next;
-	    hash_val = do_hash(ptr->key, table);
-	    ptr->next = table->bins[hash_val];
-	    table->bins[hash_val] = ptr;
-	    table->num_entries++;
-	    ptr = next;
+	if (table->num_bins % 2 == 0) {
+		table->num_bins += 1;
 	}
-    }
-    Free((char *) old_bins);
+
+	table->bins = (st_table_entry **) Calloc((unsigned)table->num_bins, sizeof(st_table_entry *));
+
+	if (!table->bins) {
+		/* If out of memory: don't resize */
+		table->bins = old_bins;
+		table->num_bins = old_num_bins;
+		return;
+	}
+
+	table->num_entries = 0;
+
+	for (i = 0; i < old_num_bins; i++) {
+		ptr = old_bins[i];
+
+		while (ptr != nil(st_table_entry)) {
+			next = ptr->next;
+			hash_val = do_hash(ptr->key, table);
+			ptr->next = table->bins[hash_val];
+			table->bins[hash_val] = ptr;
+			table->num_entries++;
+			ptr = next;
+		}
+	}
+
+	Free((char *)old_bins);
 }
 
-st_table *
-st_copy(old_table)
-st_table *old_table;
+st_table * st_copy(st_table *old_table)
 {
-    st_table *new_table;
-    st_table_entry *ptr,
-           *new;
-    int     i,
-            num_bins = old_table->num_bins;
+	st_table *new_table;
+	st_table_entry *ptr,
+				   *new;
+	int     i,
+			num_bins = old_table->num_bins;
 
-    new_table = alloc(st_table);
-    if (new_table == nil(st_table)) {
-	errRaise(st_pkg_name, ST_NO_MEM, st_no_mem);
-	/* NOTREACHED */
-    }
+	new_table = alloc(st_table);
 
-    *new_table = *old_table;
-    new_table->bins =
-	(st_table_entry **) Calloc((unsigned) num_bins, sizeof(st_table_entry *));
+	if (new_table == nil(st_table)) {
+		errRaise(st_pkg_name, ST_NO_MEM, st_no_mem);
+		/* NOTREACHED */
+	}
 
-    if (new_table->bins == nil(st_table_entry *)) {
-	Free((char *) new_table);
-	errRaise(st_pkg_name, ST_NO_MEM, st_no_mem);
-	/* NOTREACHED */
-    }
+	*new_table = *old_table;
+	new_table->bins = (st_table_entry **)Calloc((unsigned)num_bins, sizeof(st_table_entry *));
 
-    for (i = 0; i < num_bins; i++) {
-	new_table->bins[i] = nil(st_table_entry);
-	ptr = old_table->bins[i];
-	while (ptr != nil(st_table_entry)) {
-	    new = alloc(st_table_entry);
-	    if (new == nil(st_table_entry)) {
-		Free((char *) new_table->bins);
+	if (new_table->bins == nil(st_table_entry *)) {
 		Free((char *) new_table);
 		errRaise(st_pkg_name, ST_NO_MEM, st_no_mem);
 		/* NOTREACHED */
-	    }
-	    *new = *ptr;
-	    new->next = new_table->bins[i];
-	    new_table->bins[i] = new;
-	    ptr = ptr->next;
 	}
-    }
-    return new_table;
+
+	for (i = 0; i < num_bins; i++) {
+		new_table->bins[i] = nil(st_table_entry);
+		ptr = old_table->bins[i];
+
+		while (ptr != nil(st_table_entry)) {
+			new = alloc(st_table_entry);
+
+			if (new == nil(st_table_entry)) {
+				Free((char *)new_table->bins);
+				Free((char *)new_table);
+				errRaise(st_pkg_name, ST_NO_MEM, st_no_mem);
+				/* NOTREACHED */
+			}
+
+			*new = *ptr;
+			new->next = new_table->bins[i];
+			new_table->bins[i] = new;
+			ptr = ptr->next;
+		}
+	}
+	return new_table;
 }
 
-int 
-st_delete(table, keyp, value)
-register st_table *table;
-register char **keyp;
-char  **value;
+int st_delete(register st_table *table, register char **keyp, char **value)
 {
-    int     hash_val;
-    char   *key = *keyp;
-    register st_table_entry *ptr,
-          **last;
+	int     hash_val;
+	char   *key = *keyp;
+	register st_table_entry *ptr,
+			 **last;
 
-    hash_val = do_hash(key, table);
+	hash_val = do_hash(key, table);
 
-    FIND_ENTRY(table, hash_val, key, ptr, last);
+	FIND_ENTRY(table, hash_val, key, ptr, last);
 
-    if (ptr == nil(st_table_entry)) {
-	return 0;
-    }
-
-    *last = ptr->next;
-    if (value != nil(char *))
-	*value = ptr->record;
-    *keyp = ptr->key;
-    Free((char *) ptr);
-    table->num_entries--;
-    return 1;
-}
-
-int 
-st_foreach(table, func, arg)
-st_table *table;
-enum st_retval (*func) ();
-char   *arg;
-{
-    st_table_entry *ptr,
-          **last;
-    enum st_retval retval;
-    int     i;
-
-    for (i = 0; i < table->num_bins; i++) {
-	last = &table->bins[i];
-	ptr = *last;
-	while (ptr != nil(st_table_entry)) {
-	    retval = (*func) (ptr->key, ptr->record, arg);
-	    switch (retval) {
-	    case ST_CONTINUE:
-		last = &ptr->next;
-		ptr = *last;
-		break;
-	    case ST_STOP:
+	if (ptr == nil(st_table_entry)) {
 		return 0;
-	    case ST_DELETE:
-		*last = ptr->next;
-		Free((char *) ptr);
-		ptr = *last;
-		break;
-	    default:
-		errRaise(st_pkg_name, ST_BAD_RET, st_bad_ret);
-		/* NOTREACHED */
-	    }
 	}
-    }
-    return 1;
+
+	*last = ptr->next;
+	if (value != nil(char *)) {
+		*value = ptr->record;
+	}
+
+	*keyp = ptr->key;
+	Free((char *) ptr);
+	table->num_entries--;
+
+	return 1;
 }
 
-int 
-st_strhash(string, modulus)
-register char *string;
-int     modulus;
+int st_foreach(st_table *table, enum st_retval (*func)(), char *arg)
 {
-    register int val = 0;
-    register int c;
+	st_table_entry *ptr,
+				   **last;
+	enum st_retval retval;
+	int     i;
 
-    while ((c = *string++) != '\0') {
-	val = val * 997 + c;
-    }
+	for (i = 0; i < table->num_bins; i++) {
+		last = &table->bins[i];
+		ptr = *last;
 
-    return ((val < 0) ? -val : val) % modulus;
+		while (ptr != nil(st_table_entry)) {
+			retval = (*func)(ptr->key, ptr->record, arg);
+
+			switch (retval) {
+				case ST_CONTINUE:
+					last = &ptr->next;
+					ptr = *last;
+					break;
+				case ST_STOP:
+					return 0;
+				case ST_DELETE:
+					*last = ptr->next;
+					Free((char *)ptr);
+					ptr = *last;
+					break;
+				default:
+					errRaise(st_pkg_name, ST_BAD_RET, st_bad_ret);
+					/* NOTREACHED */
+			}
+		}
+	}
+	return 1;
 }
 
-int 
-st_numhash(x, size)
-char   *x;
-int     size;
+int st_strhash(register char *string, int modulus)
+{
+	register int val = 0;
+	register int c;
+
+	while ((c = *string++) != '\0') {
+		val = val * 997 + c;
+	}
+
+	return ((val < 0) ? -val : val) % modulus;
+}
+
+int st_numhash(char *x, int size)
 {
     return ST_NUMHASH(x, size);
 }
 
-int 
-st_ptrhash(x, size)
-char   *x;
-int     size;
+int st_ptrhash(char *x, int size)
 {
     return ST_PTRHASH(x, size);
 }
 
-int 
-st_numcmp(x, y)
-char   *x;
-char   *y;
+int st_numcmp(char *x, char *y)
 {
     return ST_NUMCMP(x, y);
 }
 
-int 
-st_ptrcmp(x, y)
-char   *x;
-char   *y;
+int st_ptrcmp(char *x, char *y)
 {
     return ST_NUMCMP(x, y);
 }
-st_generator *
-st_init_gen(table)
-st_table *table;
 
 /* Initializes generation of items in table */
+st_generator *st_init_gen(st_table *table)
 {
-    st_generator *gen;
+	st_generator *gen;
 
-    gen = alloc(st_generator);
-    if (!gen) {
-	errRaise(st_pkg_name, ST_NO_MEM, st_no_mem);
-	/* NOTREACHED */
-    }
-    gen->table = table;
-    gen->entry = nil(st_table_entry);
-    gen->idx = 0;
-    return gen;
+	gen = alloc(st_generator);
+
+	if (!gen) {
+		errRaise(st_pkg_name, ST_NO_MEM, st_no_mem);
+		/* NOTREACHED */
+	}
+
+	gen->table = table;
+	gen->entry = nil(st_table_entry);
+	gen->idx = 0;
+	return gen;
 }
-
-
-int
-st_gen(gen, key_p, value_p)
-st_generator *gen;
-char  **key_p;
-char  **value_p;
 
 /* Generates next item in generation sequence */
+int st_gen(st_generator *gen, char **key_p, char **value_p)
 {
-    register int i;
+	register int i;
 
-    if (!gen) {
-	errRaise(st_pkg_name, ST_BAD_GEN, st_bad_gen);
-	/* NOTREACHED */
-    }
-
-    if (gen->entry == nil(st_table_entry)) {
-	/* try to find next entry */
-	for (i = gen->idx; i < gen->table->num_bins; i++) {
-	    if (gen->table->bins[i] != nil(st_table_entry)) {
-		gen->idx = i + 1;
-		gen->entry = gen->table->bins[i];
-		break;
-	    }
+	if (!gen) {
+		errRaise(st_pkg_name, ST_BAD_GEN, st_bad_gen);
+		/* NOTREACHED */
 	}
+
 	if (gen->entry == nil(st_table_entry)) {
-	    return 0;		/* that's all folks ! */
+
+		/* try to find next entry */
+		for (i = gen->idx; i < gen->table->num_bins; i++) {
+
+			if (gen->table->bins[i] != nil(st_table_entry)) {
+				gen->idx = i + 1;
+				gen->entry = gen->table->bins[i];
+				break;
+			}
+		}
+
+		if (gen->entry == nil(st_table_entry)) {
+			return 0;		/* that's all folks ! */
+		}
 	}
-    }
-    *key_p = gen->entry->key;
-    if (value_p != 0)
-	*value_p = gen->entry->record;
-    gen->entry = gen->entry->next;
-    return 1;
+
+	*key_p = gen->entry->key;
+
+	if (value_p != 0) {
+		*value_p = gen->entry->record;
+	}
+
+	gen->entry = gen->entry->next;
+	return 1;
 }
 
-
-void
-st_Free_gen(gen)
-st_generator *gen;
+void st_Free_gen(st_generator *gen)
 {
-    if (gen) {
-	Free((char *) gen);
-    }
-    else {
-	errRaise(st_pkg_name, ST_BAD_GEN, st_bad_gen);
-	/* NOTREACHED */
-    }
+	if (gen) {
+		Free((char *)gen);
+	}
+	else {
+		errRaise(st_pkg_name, ST_BAD_GEN, st_bad_gen);
+		/* NOTREACHED */
+	}
 }
-
-
-static void 
-errRaise(pkg, num, msg)
-char   *pkg;
-int     num;
-char   *msg;
 
 /*
- * In this standalone version of st, and error raise causes
- * an abort after printing a message.
+ * In this standalone version of st, and error raise causes an abort after
+ * printing a message.
  */
+static void errRaise(char *pkg, int num, char *msg)
 {
-    (void) fprintf(stderr, "%s: %s\n", pkg, msg);
+    (void)fprintf(stderr, "%s: %s\n", pkg, msg);
     abort();
 }
