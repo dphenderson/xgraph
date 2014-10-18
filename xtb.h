@@ -36,19 +36,14 @@ typedef struct xtb_frame_defn {
             height;
 }       xtb_frame;
 
-DECLARE(xtb_init, void, (Display * disp, int scrn,
-			 unsigned long foreground,
-			 unsigned long background,
-			 XFontStruct * font));
- /* Initializes mini-toolbox */
+DECLARE(xtb_init, void, (Display * disp, int scrn, unsigned long foreground, unsigned long background, XFontStruct * font));
+/* Initializes mini-toolbox */
 
 /*
  * Basic event handling
  */
 
-DECLARE(xtb_register, void, (Window win,
-			     xtb_hret(*func) (XEvent * evt, xtb_data info),
-			     xtb_data info));
+DECLARE(xtb_register, void, (Window win, xtb_hret(*func) (XEvent * evt, xtb_data info), xtb_data info));
  /* Registers call-back function */
 
 DECLARE(xtb_lookup, xtb_data, (Window win));
@@ -78,11 +73,7 @@ DECLARE(xtb_bt_del, void, (Window win, xtb_data * info));
  * Button row frame - built on top of buttons
  */
 
-DECLARE(xtb_br_new, void, (Window win, int cnt, char *lbls[], int init,
-			   xtb_hret(*func) (Window win, int prev,
-					    int this, xtb_data val),
-			   xtb_data val,
-			   xtb_frame * frame));
+DECLARE(xtb_br_new, void, (Window win, int cnt, char *lbls[], int init, xtb_hret(*func) (Window win, int prev, int this, xtb_data val), xtb_data val, xtb_frame * frame));
  /* Creates a new button row frame */
 
 DECLARE(xtb_br_get, int, (Window win));
@@ -94,8 +85,7 @@ DECLARE(xtb_br_del, void, (Window win));
  * Text output (label) frames
  */
 
-DECLARE(xtb_to_new, void, (Window win, char *text,
-			   XFontStruct * ft, xtb_frame * frame));
+DECLARE(xtb_to_new, void, (Window win, char *text, XFontStruct * ft, xtb_frame * frame));
  /* Create new text output frame */
 DECLARE(xtb_to_del, void, (Window win));
 
@@ -105,10 +95,7 @@ DECLARE(xtb_to_del, void, (Window win));
 
 #define MAXCHBUF	1024
 
-DECLARE(xtb_ti_new, void, (Window win, char *text, int maxchar,
-			   xtb_hret(*func) (Window win, int ch,
-					    char *textcopy, xtb_data * val),
-			   xtb_data val, xtb_frame * frame));
+DECLARE(xtb_ti_new, void, (Window win, char *text, int maxchar, xtb_hret (*func)(Window win, int ch, char *textcopy, xtb_data *val), xtb_data val, xtb_frame *frame));
  /* Creates a new text input frame */
 
 DECLARE(xtb_ti_get, void, (Window win, char text[MAXCHBUF], xtb_data * val));
@@ -142,9 +129,11 @@ DECLARE(xtb_bk_del, void, (Window win));
 typedef enum xtb_fmt_types_defn {
     W_TYPE, A_TYPE
 }       xtb_fmt_types;
+
 typedef enum xtb_fmt_dir_defn {
     HORIZONTAL, VERTICAL
 }       xtb_fmt_dir;
+
 typedef enum xtb_just_defn {
     XTB_CENTER = 0, XTB_LEFT, XTB_RIGHT, XTB_TOP, XTB_BOTTOM
 }       xtb_just;
