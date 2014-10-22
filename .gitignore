@@ -9,3 +9,4 @@ build
 tags
 filesearch.txt
 x11-header.txt
+autom4te.cache
