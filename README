@@ -1,9 +1,9 @@
 
 xgraph 12.1
-<http://www-mash.cs.berkeley.edu/vint/xgraph>
+<http://www.isi.edu/nsnam/xgraph/>
 
 distributed by the VINT project
-<http://netweb.usc.edu/vint/>
+<http://www.isi.edu/nsnam/vint/>
 
 
 Welcome to the VINT release of xgraph.
@@ -18,7 +18,7 @@ See the file "INSTALL" for installation instructions.
 
 If you have installation problems or questions, check:
 
-	<http://www-mash.cs.berkeley.edu/ns/ns-problems.html#xgraph>
+	<http://www.isi.edu/nsnam/ns/ns-problems.html#xgraph>
 
 BEFORE posting to the mailing list.  Mailing list info can be found at
 the xgraph web page.
