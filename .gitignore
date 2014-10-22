@@ -6,3 +6,4 @@ config.status
 *.o
 stamp-h
 build
+tags
